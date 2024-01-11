@@ -1,17 +1,20 @@
-declare module YoutubeMp3Downloader {
-  export interface IYoutubeMp3DownloaderOptions {
-    ffmpegPath?: string;
+declare module YoutubeDownloader {
+  export interface IYoutubeDownloaderOptions {
     outputPath: string;
     // https://github.com/fent/node-ytdl-core/blob/0574df33f3382f3a825e4bef30f21e51cd78eafe/typings/index.d.ts#L7
     youtubeVideoQuality?: 'lowest' | 'highest' | string | number;
     queueParallelism: number;
+    fileTimeout: number;
     progressTimeout: number;
     allowWebm?: boolean;
     requestOptions?: {};
   }
 
   export interface IResultObject {
-    videoId: string;
+    author: object;
+    videoID: string
+    videoTitle: string;
+    output: string;
   }
 
   export interface IVideoTask {
@@ -30,18 +33,18 @@ declare module YoutubeMp3Downloader {
   }
 }
 
-declare class YoutubeMp3Downloader {
-  constructor(options: YoutubeMp3Downloader.IYoutubeMp3DownloaderOptions)
+declare class YoutubeDownloader {
+  constructor(options: YoutubeDownloader.IYoutubeDownloaderOptions)
 
   cleanFileName(fileName: string): string;
-  download(videoId: string, fileName?: string): void;
-  performDownload(task, callback: (errorNessage?: string, output?: any) => void): void;
+  toMp3(videoId: string, fileName?: string): void;
+  #performDownload(task, callback: (errorNessage?: string, output?: any) => void): void;
 
-  on(event: 'queueSize', listener: (total : number) => void): this;
+  on(event: 'queueSize', listener: (total: number) => void): this;
   on(event: 'error' | 'finished', listener: (err: any, data: any) => void): this;
-  on(event: 'progress', listener: (video: YoutubeMp3Downloader.IVideoTask) => void): this;
+  on(event: 'progress', listener: (video: YoutubeDownloader.IVideoTask) => void): this;
 }
 
-declare module 'youtube-mp3-downloader' {
-  export = YoutubeMp3Downloader;
+declare module '@yohancolla/ytdl' {
+  export = YoutubeDownloader;
 }

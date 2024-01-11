@@ -1,10 +1,10 @@
 {
-  "name": "youtube-downloader",
-  "version": "1.0.0",
-  "description": "Downloads videos and audio from youtube to mp3 and mp4, faster an easily",
+  "name": "@yohancolla/ytdl",
+  "version": "1.1.0",
+  "description": "Downloads videos and audio from youtube to mp3 and mp4, faster and easily",
   "main": "index.js",
   "scripts": {
-    "test": "node index.js"
+    "test": "node test.js"
   },
   "repository": {
     "type": "git",
@@ -27,6 +27,9 @@
   "homepage": "https://github.com/Yohan205/youtube-downloader#readme",
   "types": "./typings/index.d.ts",
   "dependencies": {
+    "async": "^3.2.5",
+    "ffmpeg": "^0.0.4",
+    "ffmpeg-static": "^5.2.0",
     "fluent-ffmpeg": "^2.1.2",
     "progress-stream": "^2.0.0",
     "sanitize-filename": "^1.6.3",
