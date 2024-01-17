@@ -1,6 +1,6 @@
-# Youtube MP3 Downloader
+# Youtube Downloader
 
-Youtube MP3 Downloader is a module which allows to specify YouTube videos from which the audio data should be extracted, converted to MP3, and stored on disk.
+Youtube MP3 and MP4 Downloader is a module which allows from an specify YouTube video to converted to MP3 (Only audio) or MP4 (Video), and stored on disk.
 
 ## Installation
 
@@ -30,7 +30,7 @@ var ytdl = new YTDL({
 ytdl.toMp3("https:youtu.be/Vhd6Kc4TZls");
 
 ytdl.on("finish", function(err, data) {
-    console.log(JSON.stringify(data));
+    console.log(data);
 });
 
 ytdl.on("error", function(error) {
