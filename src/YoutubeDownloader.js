@@ -13,14 +13,12 @@ class YoutubeDownloader extends EventEmitter {
 
   constructor(options) {
     super();
-    this.youtubeVideoQuality = (options && options.youtubeVideoQuality ? options.youtubeVideoQuality : '18');
     this.outputPath = options && options.outputPath ? options.outputPath : './';
     this.queueParallelism = (options && options.queueParallelism ? options.queueParallelism : 1);
     this.progressTimeout = (options && options.progressTimeout ? options.progressTimeout : 1000);
-    this.fileTimeout = (options && options.fileTimeout ? options.fileTimeout : 0);
+    this.deleteTimeout = (options && options.deleteTimeout ? options.deleteTimeout : 0);
     this.requestOptions = (options && options.requestOptions ? options.requestOptions : { maxRedirects: 5 });
-    this.outputOptions = (options && options.outputOptions ? options.outputOptions : []);
-    this.allowWebm = (options && options.allowWebm ? options.allowWebm : false);
+    this.audioMetadata = (options && options.audioMetadata ? options.audioMetadata : []);
 
     if (options && options.ffmpegPath) {
       ffmpeg.setFfmpegPath(options.ffmpegPath);
@@ -54,18 +52,12 @@ class YoutubeDownloader extends EventEmitter {
     }, self.queueParallelism);
   }
 
-   /**
-   * Downloads the specified youtube video to mp3.
-   * @param {string} videoLink Url of video from youtube.com
-   * @param {string} fileName File name of video. Optional.
-   * @returns null
-   */
-  toMp3 (videoLink, fileName) {
+  toMp3 (videoLink, quality, fileName) {
     let self = this;
     const task = {
       type: 'mp3',
 		  videoLink: videoLink,
-      videoId: ytdl.getURLVideoID(videoLink),
+      quality: quality ? quality : 'highestaudio',
     	fileName: fileName
     };
 
@@ -80,18 +72,12 @@ class YoutubeDownloader extends EventEmitter {
     });
   };
 
-  /**
-   * Downloads the specified youtube video to mp4.
-   * @param {string} videoLink Url of video from youtube.com
-   * @param {string} fileName File name of video. Optional.
-   * @returns null
-   */
   toMp4 (videoLink, fileName) {
     let self = this;
     const task = {
       type: 'mp4',
       videoLink: videoLink,
-      videoID: ytdl.getURLVideoID(videoLink),
+      quality: 18,
       fileName: fileName
     };
 
@@ -109,15 +95,20 @@ class YoutubeDownloader extends EventEmitter {
   async #performDownload(task, callback) {
     let self = this;
     let info;
+
+    if (!ytdl.validateURL(task.videoLink)) return callback({
+        error: "Invalid video URL! Check the URL and try again.",
+        youtubeUrl: task.videoLink
+      }, null);
+
     let resultObj = {
-      videoId: task.videoId,
-	  youtubeUrl: task.videoLink
+      videoId: ytdl.getURLVideoID(task.videoLink),
     };
 
     try {
-      info = await ytdl.getInfo(task.videoId, { quality: this.youtubeVideoQuality })
+      info = await ytdl.getInfo(resultObj.videoId, { quality: task.quality })
     } catch (err){
-      return callback(err);
+      return callback(err, null);
     }
 
     const videoTitle = sanitize(info.videoDetails.title);
@@ -142,13 +133,9 @@ class YoutubeDownloader extends EventEmitter {
 
     // Stream setup
     const streamOptions =  {
-      quality: self.youtubeVideoQuality,
+      quality: task.quality,
       requestOptions: self.requestOptions
     };
-
-    if (!self.allowWebm) {
-      streamOptions.filter = format => format.container === 'mp4';
-    }
 
     const stream = ytdl.downloadFromInfo(info, streamOptions);
 
@@ -179,8 +166,8 @@ class YoutubeDownloader extends EventEmitter {
         '-metadata', 'title=' + title,
         '-metadata', 'artist=' + artist
       ];
-      if (self.outputOptions) {
-        outputOptions = outputOptions.concat(self.outputOptions);
+      if (self.audioMetadata) {
+        outputOptions = outputOptions.concat(self.audioMetadata);
       }
       
       const audioBitrate = info.formats.find(format => !!format.audioBitrate).audioBitrate
@@ -197,11 +184,13 @@ class YoutubeDownloader extends EventEmitter {
         return callback(err.message, null);
       })
       .on('end', function() {
-        resultObj.file =  fileName;
+        resultObj.author =  {
+          artist,
+          title,
+          thumbnail
+        }
+        resultObj.output =  fileName;
         resultObj.videoTitle = videoTitle;
-        resultObj.artist = artist;
-        resultObj.title = title;
-        resultObj.thumbnail = thumbnail;
         return callback(null, resultObj);
       })
       .saveToFile(fileName);
@@ -211,8 +200,13 @@ class YoutubeDownloader extends EventEmitter {
   async #downloadVideo(task, callback) {
     let info, infoVideo;
 
+    if (!ytdl.validateURL(task.videoLink)) return callback({
+      error: "Invalid video URL! Check the URL and try again.",
+      youtubeUrl: task.videoLink
+    }, null);
+
     try {
-      info = await ytdl.getInfo(task.videoID, { quality: this.youtubeVideoQuality })
+      info = await ytdl.getInfo(task.videoID, { quality: task.quality })
     } catch (err){
       return callback(err);
     }
@@ -238,13 +232,14 @@ class YoutubeDownloader extends EventEmitter {
     });
 
     const resultObj = {
-      author: infoVideo.author,
       videoID: task.videoID,
+      author: infoVideo.author,
       videoTitle,
       output: filePath,
     }
 
-    stream.on('response', (httpResponse) => {
+    stream.on('progress', (data) => console.log("PROGRESS", data));
+    /*stream.on('response', (httpResponse) => {
       // Setup of progress module
       const streaming = progress({
         length: parseInt(httpResponse.headers['content-length']),
@@ -262,21 +257,21 @@ class YoutubeDownloader extends EventEmitter {
         }
         self.emit('progress', {videoID: task.videoID, progress: progress});
       });
-    });
+    });*/
 
     stream.pipe(fs.createWriteStream(filePath));
 
     stream.on("end", (err) => {
-      if (this.fileTimeout !== 0){
+      if (this.deleteTimeout !== 0){
         setTimeout( (cb) =>{
           try {
             fs.unlinkSync(filePath);
-            console.log('File removed, timeout to remove (seconds):', this.fileTimeout);
+            console.log('File removed, timeout to remove (seconds):', this.deleteTimeout);
           } catch(err) {
             console.error('Something wrong happened removing the file', err); 
-            cb(err, null);
+            resultObj.Error = err;
           }
-        }, (1000*this.fileTimeout), callback);
+        }, (1000*this.deleteTimeout), callback);
       }
 
       callback(null, resultObj);

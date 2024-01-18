@@ -1,12 +1,12 @@
-const ytdownloader = require('./index');
+const YTDL = require('./index');
 //let link = 'https://www.youtube.com/watch?v=LXybWcPHMXc';
-let link = ['https://youtu.be/acfYQmCBsz8?si=yXYb0DqpTcFuB6J7', 'https://youtu.be/0zpHsie6iEQ?si=gPdFAZqLeHG1XLne'];
+let link = ['https://youtu.be/acfYQmCBsz8?si=yXYb0DqpTcFuB6J7', 'https://youtu.be/CqGOwGQtCFk?si=8HSNkZBnjXrHx7Wp'];
 
 var downloadVideo = async () => {
     console.log('downloading');
-    const ytdl = new ytdownloader({
+    const ytdl = new YTDL({
         //outputPath: '.',
-        fileTimeout: (3*60),
+        deleteTimeout: (3*60),
         youtubeVideoQuality: '18',//'hightestvideo',
     });
 
@@ -28,12 +28,11 @@ var downloadVideo = async () => {
 var downlaodMp3 = async () => {
     console.log("Downlaoding...");
 
-    const ytdl = new ytdownloader({
-        //outputPath: './',
-        youtubeVideoQuality: 'highestaudio',
+    const ytdl = new YTDL({
+        outputPath: './media/',
     });
 
-    ytdl.toMp3(link[1]);
+    ytdl.toMp3(link[1], 'highestaudio', 'My Toy');
 
     ytdl.on("finish", function(err, data) {
         console.log("fisnish", data);
@@ -48,5 +47,5 @@ var downlaodMp3 = async () => {
     });
 };
 
-downloadVideo();
-//downlaodMp3();
+//downloadVideo();
+downlaodMp3();

@@ -1,33 +1,35 @@
-# Youtube Downloader
+[![npm](https://img.shields.io/npm/v/@yohancolla/ytdl.svg)](https://www.npmjs.com/package/@yohancolla/ytdl)
+[![npm](https://img.shields.io/npm/dt/@yohancolla/ytdl.svg?maxAge=3600)](https://www.npmjs.com/package/@yohancolla/ytdl)
+[![install size](https://packagephobia.now.sh/badge?p=@yohancolla/ytdl)](https://packagephobia.now.sh/result?p=@yohancolla/ytdl)
+![X (formerly Twitter) URL](https://img.shields.io/twitter/url?url=https%3A%2F%2Ftwitter.com%2FYohanColla&style=social)
 
-Youtube MP3 and MP4 Downloader is a module which allows from an specify YouTube video to converted to MP3 (Only audio) or MP4 (Video), and stored on disk.
 
-## Installation
+[![NPM](https://nodei.co/npm/@yohancolla/ytdl.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/@yohancolla/ytdl/)
 
-### Installation via NPM
+# 🧐 About Youtube Downloader
 
-`npm install @yohancolla/ytdl --save`
+With this module you can download videos and song from Youtube (MP3 and MP4) which allows from a specific YouTube video to convert to MP3 (Only audio) or MP4 (Video), and stored on disk.
 
-## Running
+## ⚙️ Running
 
 ### Basic example
 
-A basic usage example is the following:
+A basic usage example to download mp3 is the following:
 
 ```javascript
-var YTDL = require("@yohancolla/ytdl");
+const YTDL = require("@yohancolla/ytdl");
 
 //Configure YoutubeDownloader with your settings
 var ytdl = new YTDL({
-    "outputPath": "/path/to/mp3/folder",    // Output file location (default: the home directory)
-    "youtubeVideoQuality": "highestaudio",  // Desired video quality (default: highestaudio)
+    "outputPath": "/path/to/mp3/folder",    // Output file location (default: the home directory)  
     "queueParallelism": 2,                  // Download parallelism (default: 1)
     "progressTimeout": 2000,                // Interval in ms for the progress reports (default: 1000)
-    "allowWebm": false                      // Enable download from WebM sources (default: false)
+    "deleteTimeout": 60                     // Interval in seconds for delete the file (default: 0 [no delete])
 });
 
 //Download video and save as MP3 file
-ytdl.toMp3("https:youtu.be/Vhd6Kc4TZls");
+// On video quality default is highestaudio
+ytdl.toMp3("https://youtu.be/CqGOwGQtCFk?si=8HSNkZBnjXrHx7Wp", "highestaudio");
 
 ytdl.on("finish", function(err, data) {
     console.log(data);
@@ -44,7 +46,7 @@ ytdl.on("progress", function(progress) {
 
 You can also pass a file name for the respective video, which will then be used. Otherwise, the file name will be derived from the video title.
 ```javascript
-ytdl.toMp3("https://youtu.be/Vhd6Kc4TZls", "Cold Funk - Funkorama.mp3");
+ytdl.toMp3(linkURL, "highestaudio", "DVRST - My Toy");
 ```
 
 While downloading, every `progressTimeout` timeframe, there will be an `progress` event triggered, outputting an object like
@@ -77,17 +79,36 @@ Upon finish, the following output will be returned:
 
 ```javascript
 {
-    "videoId": "Vhd6Kc4TZls",
-    "stats": {
-        "transferredBytes": 27052876,
-        "runtime": 7,
-        "averageSpeed": 3279136.48
-    },
-    "output": "/path/to/mp3/folder/Cold Funk - Funkorama.mp3",
-    "youtubeUrl": "http://www.youtube.com/watch?v=Vhd6Kc4TZls",
-    "videoTitle": "Cold Funk - Funkorama - Kevin MacLeod | YouTube Audio Library",
-    "artist": "Cold Funk",
-    "title": "Funkorama",
-    "thumbnail": "https://i.ytimg.com/vi/Vhd6Kc4TZls/hqdefault.jpg"
+    videoId: "Vhd6Kc4TZls",
+    author: {
+        artist: "DVRST",
+        title: "My Toy",
+        thumbnail: "https://i.ytimg.com/vi/Vhd6Kc4TZls/hqdefault.jpg"
+    }
+    output: "/path/to/mp3/folder/DVRST - My Toy.mp3",
+    videoTitle: "DVRST - My Toy"
 }
 ```
+
+## License
+MIT License
+
+Copyright (C) 2024-present by YohanColla
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE. 
